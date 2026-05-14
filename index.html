@@ -1,76 +1,83 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NR1 - Swordland Showdown</title>
+    <title>NR1 - Swordland Strategist Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --primary: #fbbf24; --accent: #8b5cf6; --text: #f8fafc; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 900px; margin: auto; }
+        :root { 
+            --bg: #0f172a; --card: #1e293b; --primary: #fbbf24; 
+            --accent: #8b5cf6; --text: #f8fafc; --danger: #ef4444; 
+            --success: #10b981;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1100px; margin: auto; }
         
-        h1 { color: var(--primary); text-align: center; text-transform: uppercase; margin-bottom: 20px; }
+        h1 { color: var(--primary); text-align: center; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; }
 
-        /* Sélecteur de Légion */
+        /* Legion Navigation */
         .legion-nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .legion-btn { flex: 1; padding: 15px; border: 2px solid var(--accent); border-radius: 12px; background: none; color: white; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
-        .legion-btn.active { background: var(--accent); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+        .legion-btn { flex: 1; padding: 15px; border: 2px solid #334155; border-radius: 12px; background: #1e293b; color: white; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
+        .legion-btn.active { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); color: #000; }
 
-        /* Panel d'assignation */
-        .assign-box { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #334155; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
-        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
-        select { background: #0f172a; border: 1px solid #475569; color: white; padding: 10px; border-radius: 8px; width: 100%; }
-        .btn-add { background: var(--primary); color: #000; border: none; padding: 11px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; height: 42px; }
+        /* Management Layout */
+        .mgmt-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-bottom: 30px; }
+        .panel { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #334155; }
+        .panel-title { font-weight: bold; margin-bottom: 15px; color: var(--primary); text-transform: uppercase; font-size: 0.9rem; border-bottom: 1px solid #334155; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+        select { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; outline: none; }
+        .btn-add { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; }
+        
+        /* Roster Chips */
+        .roster-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .member-chip { display: inline-flex; align-items: center; background: #0f172a; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: 1px solid #334155; }
+        .chip-del { margin-left: 8px; color: #64748b; cursor: pointer; border: none; background: none; font-size: 1rem; }
+        .chip-del:hover { color: var(--danger); }
 
-        /* Grille des Rôles */
-        .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        /* Role Cards Grid */
+        .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .role-card { background: var(--card); border-radius: 12px; padding: 15px; border-top: 4px solid var(--accent); }
-        .role-header { display: flex; justify-content: space-between; font-weight: bold; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        .role-name { font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-bottom: 15px; }
         
-        .player-row { background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid transparent; }
-        .player-row.high-power { border-left-color: #ef4444; }
-        .player-name { font-weight: 500; }
-        .player-power { font-size: 0.75rem; color: #10b981; margin-left: 8px; }
-        
-        .btn-remove { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1.1rem; }
-        .btn-remove:hover { color: #ef4444; }
+        .player-row { background: #0f172a; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--accent); }
+        .p-name { font-weight: bold; font-size: 0.95rem; }
+        .p-power { font-size: 0.75rem; color: var(--success); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⚔️ Swordland Strategist</h1>
+    <h1>⚔️ SWORDLAND STRATEGIST</h1>
 
     <div class="legion-nav">
-        <button id="nav-L1" class="legion-btn active" onclick="switchLegion('L1')">LÉGION 1</button>
-        <button id="nav-L2" class="legion-btn" onclick="switchLegion('L2')">LÉGION 2</button>
+        <button id="nav-L1" class="legion-btn active" onclick="switchLegion('L1')">LEGION 1</button>
+        <button id="nav-L2" class="legion-btn" onclick="switchLegion('L2')">LEGION 2</button>
     </div>
 
-    <div class="assign-box">
-        <div>
-            <label>Choisir un membre</label>
-            <select id="select-member"><option>Chargement...</option></select>
+    <div class="mgmt-grid">
+        <div class="panel">
+            <div class="panel-title" id="admit-title">1. Admit to LEGION 1</div>
+            <label>Select available member</label>
+            <select id="select-global-member"><option>Loading...</option></select>
+            <button class="btn-add" onclick="addToLegion()">Add to current Legion</button>
         </div>
-        <div>
-            <label>Attribuer un rôle</label>
-            <select id="select-role">
-                <option value="Commander">👑 Commander</option>
-                <option value="Assassin">🗡️ Assassin</option>
-                <option value="Guard">🛡️ Guard</option>
-                <option value="Scout">🏃 Scout</option>
-                <option value="Support">🧪 Support</option>
-            </select>
+
+        <div class="panel">
+            <div class="panel-title">
+                <span id="roster-title">LEGION 1 ROSTER</span>
+                <span id="legion-count" style="background: #334155; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">0</span>
+            </div>
+            <div class="roster-container" id="legion-roster-display"></div>
         </div>
-        <button class="btn-add" onclick="assignPlayer()">Assigner</button>
     </div>
 
     <div class="role-grid" id="roleDisplay"></div>
 </div>
 
 <script>
-    // Configuration Firebase (utilise tes accès habituels)
     const firebaseConfig = {
         apiKey: "AIzaSyA8edMWQreJMKrbS8MuowKZl58x7W5vfBU",
         authDomain: "nr1-vikings.firebaseapp.com",
@@ -82,96 +89,118 @@
     
     let currentLegion = 'L1';
     let allMembers = {};
+    const ROLES = ["Commander", "Assassin", "Guard", "Scout", "Support"];
 
-// 1. Charger l'annuaire pour remplir le menu déroulant (Tri par Puissance)
-    db.ref('alliance_database').on('value', snap => {
-        allMembers = snap.val() || {};
-        const select = document.getElementById('select-member');
-        select.innerHTML = "";
-        
-        // Conversion en tableau pour pouvoir trier par puissance
-        const sortedByPower = Object.keys(allMembers).map(id => ({
-            id: id,
-            ...allMembers[id]
-        })).sort((a, b) => {
-            // Tri décroissant : le plus puissant en premier
-            return (b.power || 0) - (a.power || 0);
-        });
-
-        // Remplissage du menu de sélection
-        sortedByPower.forEach(m => {
-            select.innerHTML += `<option value="${m.id}">${m.name} (${m.power || 0}M)</option>`;
-        });
-    });
-
-    // 2. Changer de légion
+    // --- 1. RELOAD EVERYTHING ON CHANGE ---
     function switchLegion(legion) {
         currentLegion = legion;
+        
+        // Update UI
         document.querySelectorAll('.legion-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('nav-' + legion).classList.add('active');
-        renderRoles();
-    }
-
-    // 3. Assigner un joueur (ajoute la caractéristique au membre)
-    function assignPlayer() {
-        const memberId = document.getElementById('select-member').value;
-        const role = document.getElementById('select-role').value;
+        document.getElementById('roster-title').innerText = legion === 'L1' ? 'LEGION 1 ROSTER' : 'LEGION 2 ROSTER';
+        document.getElementById('admit-title').innerText = '1. Admit to ' + (legion === 'L1' ? 'LEGION 1' : 'LEGION 2');
         
-        // On enregistre l'assignation dans une branche spécifique à Swordland
-        // pour ne pas "polluer" l'annuaire tout en gardant le lien
-        db.ref(`swordland_assignments/${currentLegion}/${memberId}`).set({
-            role: role,
-            timestamp: Date.now()
-        });
+        // Force immediate data refresh
+        renderAll();
     }
 
-    // 4. Afficher la grille
-    const ROLES_LIST = ["Commander", "Assassin", "Guard", "Scout", "Support"];
-    
-    function renderRoles() {
-        db.ref(`swordland_assignments/${currentLegion}`).on('value', snap => {
-            const assignments = snap.val() || {};
-            const display = document.getElementById('roleDisplay');
-            display.innerHTML = "";
+    function addToLegion() {
+        const id = document.getElementById('select-global-member').value;
+        if (!id) return;
+        db.ref(`swordland/rosters/${currentLegion}/${id}`).set(true);
+    }
 
-            ROLES_LIST.forEach(roleName => {
-                let playersHtml = "";
-                let count = 0;
+    function removeFromLegion(id) {
+        db.ref(`swordland/rosters/${currentLegion}/${id}`).remove();
+        db.ref(`swordland/assignments/${currentLegion}/${id}`).remove();
+    }
 
-                Object.keys(assignments).forEach(mId => {
-                    if (assignments[mId].role === roleName && allMembers[mId]) {
-                        count++;
-                        const m = allMembers[mId];
-                        playersHtml += `
-                            <div class="player-row ${m.power > 100 ? 'high-power' : ''}">
-                                <div>
-                                    <span class="player-name">${m.name}</span>
-                                    <span class="player-power">${m.power}M</span>
-                                </div>
-                                <button class="btn-remove" onclick="removeAssignment('${mId}')">✕</button>
-                            </div>`;
+    function assignRole(roleName, memberId) {
+        if (!memberId) return;
+        db.ref(`swordland/assignments/${currentLegion}/${memberId}`).set(roleName);
+    }
+
+    function removeRole(memberId) {
+        db.ref(`swordland/assignments/${currentLegion}/${memberId}`).remove();
+    }
+
+    // --- 2. THE MASTER RENDERER ---
+    function renderAll() {
+        // First, get the global directory
+        db.ref('alliance_database').once('value', memberSnap => {
+            allMembers = memberSnap.val() || {};
+
+            // Listen to Swordland data
+            db.ref('swordland').on('value', swordSnap => {
+                const data = swordSnap.val() || {};
+                const rosters = data.rosters || {};
+                const assignments = data.assignments || {};
+                
+                const l1Roster = rosters.L1 || {};
+                const l2Roster = rosters.L2 || {};
+                const currentRoster = rosters[currentLegion] || {};
+                const currentAssignments = assignments[currentLegion] || {};
+
+                // Update Dropdown (Only show players NOT in L1 AND NOT in L2)
+                const select = document.getElementById('select-global-member');
+                select.innerHTML = '<option value="">Select a member...</option>';
+                Object.keys(allMembers).sort((a,b) => (allMembers[b].power || 0) - (allMembers[a].power || 0)).forEach(id => {
+                    if (!l1Roster[id] && !l2Roster[id]) {
+                        select.innerHTML += `<option value="${id}">${allMembers[id].name} (${allMembers[id].power || 0}M)</option>`;
                     }
                 });
 
-                display.innerHTML += `
-                    <div class="role-card">
-                        <div class="role-header">
-                            <span>${roleName}s</span>
-                            <span>${count}</span>
-                        </div>
-                        ${playersHtml || '<div style="opacity:0.3; font-size:0.8rem">Aucun assigné</div>'}
-                    </div>`;
+                // Update Roster Display (Chips)
+                const rosterDiv = document.getElementById('legion-roster-display');
+                rosterDiv.innerHTML = "";
+                let count = 0;
+                const availableForRoles = [];
+
+                Object.keys(currentRoster).forEach(id => {
+                    if (allMembers[id]) {
+                        count++;
+                        availableForRoles.push({ id, ...allMembers[id] });
+                        rosterDiv.innerHTML += `
+                            <div class="member-chip">
+                                ${allMembers[id].name}
+                                <button class="chip-del" onclick="removeFromLegion('${id}')">✕</button>
+                            </div>`;
+                    }
+                });
+                document.getElementById('legion-count').innerText = count;
+
+                // Update Role Cards
+                const roleGrid = document.getElementById('roleDisplay');
+                roleGrid.innerHTML = "";
+                ROLES.forEach(role => {
+                    let playersHtml = "";
+                    let options = `<option value="">+ Assign ${role}</option>`;
+                    
+                    availableForRoles.sort((a,b) => b.power - a.power).forEach(m => {
+                        if (currentAssignments[m.id] === role) {
+                            playersHtml += `
+                                <div class="player-row">
+                                    <div><span class="p-name">${m.name}</span> <span class="p-power">${m.power}M</span></div>
+                                    <button class="chip-del" onclick="removeRole('${m.id}')">✕</button>
+                                </div>`;
+                        } else if (!currentAssignments[m.id]) {
+                            options += `<option value="${m.id}">${m.name} (${m.power}M)</option>`;
+                        }
+                    });
+
+                    roleGrid.innerHTML += `
+                        <div class="role-card">
+                            <div class="role-name">${role}s</div>
+                            <select onchange="assignRole('${role}', this.value)">${options}</select>
+                            <div style="margin-top:10px">${playersHtml || '<small style="opacity:0.5">Empty</small>'}</div>
+                        </div>`;
+                });
             });
         });
     }
 
-    function removeAssignment(mId) {
-        db.ref(`swordland_assignments/${currentLegion}/${mId}`).remove();
-    }
-
-    // Lancement initial
-    renderRoles();
-
+    renderAll();
 </script>
 </body>
 </html>
