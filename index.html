@@ -260,9 +260,12 @@
         const sortedIds = Object.keys(allianceDatabase).sort((a,b) => allianceDatabase[a].name.localeCompare(allianceDatabase[b].name));
 
         sortedIds.forEach(id => {
-            const pName = allianceDatabase[id].name;
+            const member = allianceDatabase[id];
+            // AJOUT : Prise en charge et concaténation de l'alias s'il existe
+            const displayName = member.aliases ? `${member.name} (${member.aliases})` : member.name;
+            
             const pRoles = globalExperience[id] || [];
-            const pObj = { id: id, name: pName };
+            const pObj = { id: id, name: displayName };
 
             if (pRoles.includes("Commander")) lists.commander.push(pObj);
             if (pRoles.includes("Rally-Leader") || pRoles.includes("Assassins")) {
@@ -338,7 +341,12 @@
         
         let txt = "Unassigned";
         if (count === 1) {
-            txt = allianceDatabase[checkedBoxes[0].getAttribute('data-playerid')]?.name || "1 Player";
+            const pId = checkedBoxes[0].getAttribute('data-playerid');
+            const member = allianceDatabase[pId];
+            if (member) {
+                // MODIFICATION : Affichage du nom + alias dans l'étiquette condensée si sélection unique
+                txt = member.aliases ? `${member.name} (${member.aliases})` : member.name;
+            }
         } else if (count > 1) {
             txt = `${count} Selected`;
         }
